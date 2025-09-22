@@ -6,10 +6,10 @@ type Cancion struct {
 	Artista_Banda string
 	Lanzamiento   int32
 	Duracion      string
-	genero        Genero
+	Genero        Genero
 }
 
 func NewCancion(id int32, titulo string, artista_banda string, lanzamiento int32, duracion string, genero Genero) Cancion {
-	objCancion := Cancion{Id: id, Titulo: titulo, Artista_Banda: artista_banda, Lanzamiento: lanzamiento, Duracion: duracion, genero: genero}
+	objCancion := Cancion{Id: id, Titulo: titulo, Artista_Banda: artista_banda, Lanzamiento: lanzamiento, Duracion: duracion, Genero: genero}
 	return objCancion
 }
