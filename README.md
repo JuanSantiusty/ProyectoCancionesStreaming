@@ -6,6 +6,9 @@ Intalar dependencias con los comandos:
 go get google.golang.org/grpc
 go get google.golang.org/protobuf
 
+Cliente:
+go mod tidy
+
 Comando para los Stub de cliente y servidor:
 protoc --go_out=. --go-grpc_out=. servicios.proto
 

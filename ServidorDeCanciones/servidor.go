@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 
@@ -23,7 +24,10 @@ type servidorCanciones struct {
 func (s *servidorCanciones) BuscarCancion(ctx context.Context, req *pb.PeticionDTO) (*pb.RespuestaCancionDTO, error) {
 
 	titulo := req.GetTitulo()
+	fmt.Printf("%s", titulo)
+	fmt.Print("Buscando Cancion")
 	resp := se.BuscarCancion(titulo, repo)
+	fmt.Print("Terminar de buscar cancion")
 
 	var respuesta pb.RespuestaCancionDTO
 	respuesta.Codigo = resp.Codigo
