@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	pb "servidor/grpc-servidor/serviciosCancion" // ruta generada por protoc
+	inf "cliente/infraestructura"
+	pb "servidor/grpc-servidor/serviciosCancion"
 
 	"google.golang.org/grpc"
 )
@@ -22,8 +23,8 @@ func main() {
 	}
 	defer conn.Close()
 
-	// Crear cliente
-	c := pb.NewServiciosCancionesClient(conn)
+	// Crear
+	var servicio inf.ServicioCanciones = inf.NewClienteGRPC(conn)
 	// Contexto con timeout
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*25)
 	defer cancel()
@@ -34,9 +35,8 @@ menuprincipal:
 		fmt.Printf("\nGeneros musicales disponibles")
 		fmt.Printf("\n1: Rock")
 		fmt.Printf("\n2: Salir")
-		fmt.Printf("\nEliga un genero:")
+		fmt.Printf("\nEliga un genero musical:")
 		//Se captura el genero
-		fmt.Printf("\nIngrese el titulo de la canción a buscar:")
 		numG, _ := reader.ReadString('\n')
 		numG = strings.TrimSpace(numG)
 		numero, err := strconv.Atoi(numG)
@@ -47,7 +47,7 @@ menuprincipal:
 		switch numero {
 		case 1:
 			tituloLeido := "lamentoboliviano"
-			infoCancion(tituloLeido, c, ctx)
+			buscarCancion(tituloLeido, servicio, ctx)
 		case 2:
 			fmt.Printf("\nHasta luego")
 			break menuprincipal
@@ -56,29 +56,30 @@ menuprincipal:
 
 }
 
-// Funcion que se encargara de pedir y mostrar la informacion de una cancion
-func infoCancion(tituloLeido string, c pb.ServiciosCancionesClient, ctx context.Context) {
-	//Se crea un objeto de tipo DTO que contiene el título de la canción a buscar
-	objPeticion := &pb.PeticionDTO{Titulo: tituloLeido}
+// Función que usa la interfaz, recibe titulo de la cancion variable que implemente la interfaz y el contexto
+func buscarCancion(titulo string, servicio inf.ServicioCanciones, ctx context.Context) {
+	peticion := &pb.PeticionDTO{Titulo: titulo}
 
-	// Llamada al procedimiento remoto buscarCancion
-	res, err := c.BuscarCancion(ctx, objPeticion)
+	respuesta, err := servicio.BuscarCancion(ctx, peticion)
 	if err != nil {
-		fmt.Printf("Error al pedir canción %v", err)
+		fmt.Printf("❌ Error al buscar canción: %v\n", err)
+		return
 	}
 
-	// Impresión de la respuesta
+	mostrarCancion(respuesta)
+}
 
-	if res.Codigo == 200 {
-		fmt.Print(res.Mensaje)
-		objcancion := res.ObjCancion
-		fmt.Printf("\nTitulo de la cancion: %s", objcancion.Titulo)
-		fmt.Printf("\nArtista/Banda: %s", objcancion.Artista_Banda)
-		fmt.Printf("\nAño lanzamiento: %d", objcancion.Lanzamiento)
-		fmt.Printf("\nDuracion: %s", objcancion.Duracion)
-		fmt.Printf("\nGenero musical: %s", objcancion.ObjGenero.Nombre)
-		fmt.Printf("\n")
+// Funcion para mostrar informacion de una cancion
+func mostrarCancion(respuesta *pb.RespuestaCancionDTO) {
+	if respuesta.Codigo == 200 {
+		fmt.Printf("✅ %s\n", respuesta.Mensaje)
+		cancion := respuesta.ObjCancion
+		fmt.Printf("🎵 Título: %s\n", cancion.Titulo)
+		fmt.Printf("🎤 Artista/Banda: %s\n", cancion.Artista_Banda)
+		fmt.Printf("📅 Año lanzamiento: %d\n", cancion.Lanzamiento)
+		fmt.Printf("⏱️ Duración: %s\n", cancion.Duracion)
+		fmt.Printf("🎸 Género musical: %s\n", cancion.ObjGenero.Nombre)
 	} else {
-		fmt.Printf("%s", res.Mensaje)
+		fmt.Printf("❌ %s\n", respuesta.Mensaje)
 	}
 }
